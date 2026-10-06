@@ -1,6 +1,10 @@
 "area: core":
   - changed-files:
-      - any-glob-to-any-file: "src/core/**"
+      - any-glob-to-any-file: "src/**"
+
+"area: agents":
+  - changed-files:
+      - any-glob-to-any-file: ".agents/**"
 
 "area: tests":
   - changed-files:
@@ -16,6 +20,7 @@
   - changed-files:
       - any-glob-to-any-file:
           - ".github/**"
+          - ".githooks/**"
           - "scripts/**"
           - "Makefile"
           - "pyproject.toml"
