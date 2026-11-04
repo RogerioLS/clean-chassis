@@ -105,3 +105,16 @@ class TestCleanChassisTemplateScaffold:
         invalid, err = validate_commit("just fixed a bug without format")
         assert invalid is False
         assert "Invalid commit format" in err
+
+    def test_standing_flavor_fat_finger_protection(self) -> None:
+        """Validates that template flavor branches cannot be merged into main/master."""
+        from scripts.lint_branch_and_commits import validate_branch
+
+        # Attempting to target main from template/kaggle must fail
+        valid, err = validate_branch("template/kaggle", base_branch="main")
+        assert valid is False
+        assert "Standing Flavor Protection" in err
+
+        # Normal feature branch targeting main passes
+        valid_feat, _ = validate_branch("feat/task-01-core-engine", base_branch="main")
+        assert valid_feat is True
