@@ -281,7 +281,7 @@ def main() -> None:
     args = parser.parse_args()
 
     print("==================================================")
-    print(" 🚀 KAGGLE COMPETITIONS — GITHUB KANBAN SETUP     ")
+    print(" 🚀 CLEAN CHASSIS — GITHUB KANBAN SETUP           ")
     print("==================================================")
     if args.dry_run:
         print("🔍 Running in DRY-RUN mode (read-only simulation)...")
