@@ -29,6 +29,7 @@ It replaces repetitive repository setup with a battle-tested architecture featur
 ```text
 clean-chassis/
 ├── .github/                               # 🤖 CI/CD Workflows, Automations & Templates
+│   ├── BOTS.md                            # Manifest of automated system bots & collaborators
 │   ├── CODEOWNERS                         # Mandatory code review ownership
 │   ├── dependabot.yml                     # Continuous dependency and Action security patches
 │   ├── labeler.yml                        # Automated PR labeling based on modified paths
@@ -36,13 +37,22 @@ clean-chassis/
 │   ├── release.yml                        # Semantic category mapping for GitHub releases
 │   ├── ISSUE_TEMPLATE/                    # Structured Bug and Feature issue forms
 │   ├── issues/                            # Markdown backlog for offline task tracking
+│   ├── scripts/                           # Dynamic Kanban and GitHub Issue setup automations
 │   └── workflows/                         # GitHub Actions pipelines (Audit, Branch Lint, Pages)
 │
 ├── .githooks/                             # 🔒 Local Machine Git Hooks
 │   ├── pre-commit                         # Runs formatters, linters, and norm auditors
 │   └── commit-msg                         # Enforces conventional task commit formats
 │
+├── docs/                                  # 📚 Institutional Documentation Hub (Big Tech Standard)
+│   ├── status/                            # 📋 Project Status & MLOps Governance (PROJECT_STATUS.md)
+│   ├── architecture/                      # 🏛️ Architecture Decision Records & System Design (SYSTEM_DESIGN.md)
+│   ├── research/                          # 🔬 Empirical Benchmarks, Studies & Archaeology
+│   └── notes/                             # 🧠 Permanent Engineering Memory, Hardware & Trap Notes
+│
 ├── scripts/                               # ⚙️ Automation and Quality Gate Utilities
+│   ├── pr.py                              # Standard PR entrypoint and environment initializer
+│   ├── create_pr.py                       # Automated Pull Request creator with quality checklist
 │   ├── lint_branch_and_commits.py         # Branch and commit validator with PR auto-close
 │   ├── generate_summary.py                # Visual Markdown and JSON audit report builder
 │   ├── release_bot.py                     # Idempotent release publisher
@@ -107,6 +117,7 @@ make audit
 | `make check` | Run pre-commit linters (Black, Isort, Flake8 100 cols, Ruff) |
 | `make audit` | Full audit: syntax + linters + unit tests + Bandit scan |
 | `make summary` | Generate visual audit report (`summary.md`) |
+| `make pr` | Create or update Pull Request with standardized quality checklist |
 | `make clean` | Remove temporary caches, build artifacts, and coverage files |
 
 ---
