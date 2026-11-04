@@ -42,6 +42,12 @@ clean-chassis/
 │   ├── pre-commit                         # Runs formatters, linters, and norm auditors
 │   └── commit-msg                         # Enforces conventional task commit formats
 │
+├── docs/                                  # 📚 Institutional Documentation Hub (Big Tech Standard)
+│   ├── status/                            # 📋 Project Status & MLOps Governance (PROJECT_STATUS.md)
+│   ├── architecture/                      # 🏛️ Architecture Decision Records & System Design (SYSTEM_DESIGN.md)
+│   ├── research/                          # 🔬 Empirical Benchmarks, Studies & Archaeology
+│   └── notes/                             # 🧠 Permanent Engineering Memory, Hardware & Trap Notes
+│
 ├── scripts/                               # ⚙️ Automation and Quality Gate Utilities
 │   ├── lint_branch_and_commits.py         # Branch and commit validator with PR auto-close
 │   ├── generate_summary.py                # Visual Markdown and JSON audit report builder
