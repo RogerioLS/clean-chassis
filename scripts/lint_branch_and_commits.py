@@ -43,9 +43,20 @@ RESERVED_TAGS = {
 }
 
 
-def validate_branch(branch_name: str) -> Tuple[bool, str]:
-    """Validates the branch name against the institutional regex."""
+def validate_branch(branch_name: str, base_branch: str = "main") -> Tuple[bool, str]:
+    """Validates the branch name against institutional regex and fat-finger flavor rules."""
     clean_branch = branch_name.replace("refs/heads/", "").strip()
+    clean_base = base_branch.replace("refs/heads/", "").strip()
+
+    # 1. Anti-Fat-Finger: Template flavors must never merge into main/master/develop
+    if clean_branch.startswith("template/") and clean_base in {"main", "master", "develop"}:
+        error_msg = (
+            f"🚫 Standing Flavor Protection: Branch `{clean_branch}` is a specialized flavor.\n"
+            f"Template flavors must NEVER be merged into `{clean_base}`.\n"
+            f"Merges are strictly one-way: `{clean_base}` ➔ `{clean_branch}`."
+        )
+        return False, error_msg
+
     if clean_branch in {"main", "master", "develop"}:
         return True, ""
     if clean_branch.startswith("dependabot/"):
@@ -151,9 +162,9 @@ def main() -> None:
     violations: List[str] = []
 
     if branch:
-        branch_ok, branch_err = validate_branch(branch)
+        branch_ok, branch_err = validate_branch(branch, base_branch=args.base)
         if not branch_ok:
-            violations.append(f"### 🌿 Branch Name Violation\n{branch_err}")
+            violations.append(f"### 🌿 Branch Governance Violation\n{branch_err}")
 
     commits = get_pr_commits(args.base)
     for commit in commits:

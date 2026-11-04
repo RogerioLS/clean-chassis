@@ -370,6 +370,22 @@ def main() -> int:
             print("Error: Cannot create a pull request from the main branch.", file=sys.stderr)
             return 1
 
+        if current_branch.startswith("template/") and args.base in ("main", "master", "develop"):
+            print(
+                f"⛔ [FAT FINGER PROTECTION] Cannot create a pull request from flavor branch "
+                f"'{current_branch}' to '{args.base}'.",
+                file=sys.stderr,
+            )
+            print(
+                "Template flavor branches must never be merged back into the agnostic main branch.",
+                file=sys.stderr,
+            )
+            print(
+                f"To update this flavor, merge '{args.base}' into '{current_branch}' instead.",
+                file=sys.stderr,
+            )
+            return 1
+
         default_title, default_body = generate_default_pr_content(
             current_branch, base_branch=args.base
         )
