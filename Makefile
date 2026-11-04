@@ -18,23 +18,25 @@ MAGENTA := \033[35m
 BLUE    := \033[34m
 WHITE   := \033[97m
 
-.PHONY: help install onboarding test check audit summary pr clean pre-commit
+.PHONY: help install onboarding test check audit summary pr clean pre-commit submit-kaggle sync-dataset
 
 help:
 	@printf "$(CYAN)┌──────────────────────────────────────────────────────────────────────────────┐\n$(RESET)"
-	@printf "$(CYAN)│$(RESET) $(BOLD)$(MAGENTA)                 CLEAN CHASSIS — COMMAND CENTER                             $(RESET) $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET) $(BOLD)$(MAGENTA)                 CLEAN CHASSIS (KAGGLE) — COMMAND CENTER                    $(RESET) $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)├──────────────────────────────────────────────────────────────────────────────┤\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make help$(RESET)       $(DIM)─$(RESET) Show this interactive command center                     $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make onboarding$(RESET) $(DIM)─$(RESET) Display best practices & Git governance banner           $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make install$(RESET)    $(DIM)─$(RESET) Install dev dependencies and configure local git hooks     $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make test$(RESET)       $(DIM)─$(RESET) Run all automated unit and integration test suites        $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make check$(RESET)      $(DIM)─$(RESET) Run pre-commit linters (Black, Isort, Flake8, Ruff)       $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make audit$(RESET)      $(DIM)─$(RESET) Full audit: syntax + linters + unit tests + security scan $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make summary$(RESET)    $(DIM)─$(RESET) Generate local audit summary report (summary.md)          $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make pr$(RESET)         $(DIM)─$(RESET) Create or update PR with quality checklist                $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make clean$(RESET)      $(DIM)─$(RESET) Clean temporary cache files, .pytest_cache and dist       $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make help$(RESET)          $(DIM)─$(RESET) Show this interactive command center                  $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make onboarding$(RESET)    $(DIM)─$(RESET) Display best practices & Git governance banner        $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make install$(RESET)       $(DIM)─$(RESET) Install dev dependencies and configure local git hooks  $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make test$(RESET)          $(DIM)─$(RESET) Run all automated unit and integration test suites     $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make check$(RESET)         $(DIM)─$(RESET) Run pre-commit linters (Black, Isort, Flake8, Ruff)    $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make audit$(RESET)         $(DIM)─$(RESET) Full audit: syntax + linters + unit tests + security   $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make summary$(RESET)       $(DIM)─$(RESET) Generate local audit summary report (summary.md)       $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make pr$(RESET)            $(DIM)─$(RESET) Create or update PR with quality checklist             $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make submit-kaggle$(RESET) $(DIM)─$(RESET) Submit artifacts/submission.zip to Kaggle competition   $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make sync-dataset$(RESET)  $(DIM)─$(RESET) Synchronize codebase to private Kaggle dataset         $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make clean$(RESET)         $(DIM)─$(RESET) Clean temporary cache files, .pytest_cache and dist    $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)├──────────────────────────────────────────────────────────────────────────────┤\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)           $(BOLD)$(WHITE)🔥 Clean Chassis • Built for High-Performance Engineering$(RESET)          $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)        $(BOLD)$(WHITE)🏆 Kaggle Flavor • Clean Chassis for Competition Mastery$(RESET)        $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)└──────────────────────────────────────────────────────────────────────────────┘\n$(RESET)"
 
 onboarding:
@@ -67,6 +69,14 @@ summary:
 pr:
 	@printf "$(BOLD)$(BLUE)🚀 [PR] Creating or updating GitHub Pull Request...$(RESET)\n"
 	@$(PYTHON) scripts/create_pr.py
+
+submit-kaggle:
+	@printf "$(BOLD)$(BLUE)🚀 [KAGGLE] Submitting package to Kaggle...$(RESET)\n"
+	@$(PYTHON) scripts/submit_kaggle.py $(ARGS)
+
+sync-dataset:
+	@printf "$(BOLD)$(BLUE)🔄 [KAGGLE] Synchronizing codebase to Kaggle Dataset...$(RESET)\n"
+	@$(PYTHON) scripts/sync_kaggle_dataset.py $(ARGS)
 
 clean:
 	@printf "$(YELLOW)🧹 [CLEAN] Cleaning temporary files...$(RESET)\n"

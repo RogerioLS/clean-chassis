@@ -1,13 +1,15 @@
-# 🛡️ Clean Chassis
+# 🛡️ Clean Chassis — Kaggle Flavor 🏆
 
 [![CI & Quality Gate](https://github.com/RogerioLS/clean-chassis/actions/workflows/audit.yml/badge.svg)](https://github.com/RogerioLS/clean-chassis/actions/workflows/audit.yml)
 [![Branch & Commit Gate](https://github.com/RogerioLS/clean-chassis/actions/workflows/branch_lint.yml/badge.svg)](https://github.com/RogerioLS/clean-chassis/actions/workflows/branch_lint.yml)
+[![Kaggle Dataset Sync](https://github.com/RogerioLS/clean-chassis/actions/workflows/sync_kaggle.yml/badge.svg)](https://github.com/RogerioLS/clean-chassis/actions/workflows/sync_kaggle.yml)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Flavor: Kaggle](https://img.shields.io/badge/flavor-kaggle%20competitions-20beff.svg)](https://www.kaggle.com)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linter: Flake8](https://img.shields.io/badge/flake8-100%20cols-brightgreen.svg)](https://flake8.pycqa.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Production-ready software chassis with strict governance, automated quality gates, continuous delivery, and zero-friction developer experience.**
+> **Production-ready software chassis specialized for Kaggle Competitions and offline GPU evaluation environments.**
 
 ---
 
@@ -118,6 +120,8 @@ make audit
 | `make audit` | Full audit: syntax + linters + unit tests + Bandit scan |
 | `make summary` | Generate visual audit report (`summary.md`) |
 | `make pr` | Create or update Pull Request with standardized quality checklist |
+| `make submit-kaggle` | Validate and dispatch `artifacts/submission.zip` to Kaggle |
+| `make sync-dataset` | Package and synchronize codebase to private Kaggle dataset |
 | `make clean` | Remove temporary caches, build artifacts, and coverage files |
 
 ---
