@@ -4,6 +4,7 @@ Verifies that Clean Chassis contains all mandatory directories, governance files
 valid scripts, and functional dry-runs when instantiated as a new repository template.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -54,12 +55,16 @@ class TestCleanChassisTemplateScaffold:
 
     def test_pr_scripts_dry_run_execution(self) -> None:
         """Verifies scripts/create_pr.py and scripts/pr.py execute dry-run with code 0."""
+        test_env = dict(os.environ)
+        test_env["GITHUB_HEAD_REF"] = "feat/template-verification"
+
         res_create = subprocess.run(
             [sys.executable, "scripts/create_pr.py", "--dry-run"],
             cwd=str(BASE_DIR),
             capture_output=True,
             text=True,
             check=False,
+            env=test_env,
         )
         assert res_create.returncode == 0, f"create_pr dry-run failed: {res_create.stderr}"
         assert "[DRY-RUN] PULL REQUEST PAYLOAD PREVIEW" in res_create.stdout
@@ -70,6 +75,7 @@ class TestCleanChassisTemplateScaffold:
             capture_output=True,
             text=True,
             check=False,
+            env=test_env,
         )
         assert res_pr.returncode == 0, f"pr.py dry-run failed: {res_pr.stderr}"
 
@@ -118,3 +124,17 @@ class TestCleanChassisTemplateScaffold:
         # Normal feature branch targeting main passes
         valid_feat, _ = validate_branch("feat/task-01-core-engine", base_branch="main")
         assert valid_feat is True
+
+        # create_pr.py rejects PR targeting main from template/kaggle
+        test_env = dict(os.environ)
+        test_env["GITHUB_HEAD_REF"] = "template/kaggle"
+        res = subprocess.run(
+            [sys.executable, "scripts/create_pr.py", "--base", "main"],
+            cwd=str(BASE_DIR),
+            capture_output=True,
+            text=True,
+            check=False,
+            env=test_env,
+        )
+        assert res.returncode == 1
+        assert "FAT FINGER PROTECTION" in res.stderr
