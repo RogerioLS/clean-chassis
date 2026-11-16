@@ -47,16 +47,17 @@ clean-chassis/
 │   └── commit-msg                         # Enforces conventional task commit formats
 │
 ├── docs/                                  # 📚 Institutional Documentation Hub (Big Tech Standard)
-│   ├── status/                            # 📋 Project Status & MLOps Governance (PROJECT_STATUS.md)
-│   ├── architecture/                      # 🏛️ Architecture Decision Records & System Design (SYSTEM_DESIGN.md)
-│   ├── research/                          # 🔬 Empirical Benchmarks, Studies & Archaeology
-│   └── notes/                             # 🧠 Permanent Engineering Memory, Hardware & Trap Notes
+│   ├── status/                            # 📋 PROJECT_STATUS.md & HANDOFF_RESUME.md
+│   ├── architecture/                      # 🏛️ SYSTEM_DESIGN.md (ADRs & Clean Architecture)
+│   ├── research/                          # 🔬 BENCHMARK_ANALYSIS.md & DATASET_EDA.md
+│   └── notes/                             # 🧠 MASTER_MEMORY_COMPILATION.md (Traps & Memory)
 │
 ├── scripts/                               # ⚙️ Automation and Quality Gate Utilities
 │   ├── pr.py                              # Standard PR entrypoint and environment initializer
 │   ├── create_pr.py                       # Automated Pull Request creator with quality checklist
 │   ├── lint_branch_and_commits.py         # Branch and commit validator with PR auto-close
 │   ├── generate_summary.py                # Visual Markdown and JSON audit report builder
+│   ├── check_agent_harness.py             # Validates .agents/ rules, skills & canonical docs/ layout
 │   ├── release_bot.py                     # Idempotent release publisher
 │   ├── rename_pr.py                       # Dynamic PR title updater
 │   ├── update_pr_checklist.py             # Automated PR description checkbox updater
@@ -71,6 +72,7 @@ clean-chassis/
 │   ├── unit/                              # Isolated component tests
 │   └── integration/                       # End-to-end execution pipeline tests
 │
+├── .env.example                           # 🔐 Kaggle API & proxy environment template
 ├── Makefile                               # 🎛️ Command Center (help, install, check, audit, test)
 ├── pyproject.toml                         # Unified tooling config (Black, Flake8, Ruff, Pytest)
 ├── CHANGELOG.md                           # Semantic version history (Keep a Changelog)
@@ -119,8 +121,9 @@ make audit
 | `make check` | Run pre-commit linters (Black, Isort, Flake8 100 cols, Ruff) |
 | `make audit` | Full audit: syntax + linters + unit tests + Bandit scan |
 | `make summary` | Generate visual audit report (`summary.md`) |
+| `make harness-check` | Verify `.agents/` rules, skills, canonical `docs/`, and task linkage |
 | `make pr` | Create or update Pull Request with standardized quality checklist |
-| `make submit-kaggle` | Validate and dispatch `artifacts/submission.zip` to Kaggle |
+| `make submit-kaggle` | Validate and dispatch `submission.{zip,parquet,csv}` to Kaggle |
 | `make sync-dataset` | Package and synchronize codebase to private Kaggle dataset |
 | `make clean` | Remove temporary caches, build artifacts, and coverage files |
 

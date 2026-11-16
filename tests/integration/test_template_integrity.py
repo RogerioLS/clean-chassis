@@ -34,17 +34,22 @@ class TestCleanChassisTemplateScaffold:
             assert file_path.stat().st_size > 0, f"File cannot be empty: {filename}"
 
     def test_institutional_docs_hierarchy_exists(self) -> None:
-        """Ensures the Big Tech docs/ hierarchy and blueprints exist."""
+        """Ensures the Big Tech docs/ hierarchy uses canonical filenames without README.md."""
         mandatory_docs = [
             "docs/status/PROJECT_STATUS.md",
+            "docs/status/HANDOFF_RESUME.md",
             "docs/architecture/SYSTEM_DESIGN.md",
-            "docs/research/README.md",
-            "docs/notes/README.md",
+            "docs/research/BENCHMARK_ANALYSIS.md",
+            "docs/research/DATASET_EDA.md",
+            "docs/notes/MASTER_MEMORY_COMPILATION.md",
         ]
         for doc_path in mandatory_docs:
             target = BASE_DIR / doc_path
             assert target.exists(), f"Mandatory docs template missing: {doc_path}"
             assert target.stat().st_size > 0, f"Docs blueprint cannot be empty: {doc_path}"
+
+        readme_docs = list((BASE_DIR / "docs").rglob("README.md"))
+        assert readme_docs == [], f"Unexpected README.md files in docs/: {readme_docs}"
 
     def test_githooks_configured_and_executable(self) -> None:
         """Verifies local pre-commit and commit-msg hooks exist."""
@@ -138,3 +143,27 @@ class TestCleanChassisTemplateScaffold:
         )
         assert res.returncode == 1
         assert "FAT FINGER PROTECTION" in res.stderr
+
+    def test_agent_protocol_rules_and_skills_exist(self) -> None:
+        """Verifies .agents/AGENTS.md, rules (00-08), skills, and harness script pass."""
+        from scripts.check_agent_harness import verify_agent_harness
+
+        passed, errors, _ = verify_agent_harness(BASE_DIR)
+        assert passed is True, f"Harness verification failed: {errors}"
+
+        res = subprocess.run(
+            [sys.executable, "scripts/check_agent_harness.py"],
+            cwd=str(BASE_DIR),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert res.returncode == 0, f"check_agent_harness failed: {res.stderr}"
+        assert "Agent harness verified" in res.stdout
+
+        # Branch referencing missing task spec must fail harness check
+        branch_ok, branch_errs, _ = verify_agent_harness(
+            BASE_DIR, branch_name="feat/task-999-missing-spec"
+        )
+        assert branch_ok is False
+        assert any("task-999" in err for err in branch_errs)

@@ -74,6 +74,8 @@ datasets/
 ### Submissions & Tracking ###
 submission.zip
 submissions/
+submission/
+notebooks/*/output/
 *.sub
 wandb/
 runs/

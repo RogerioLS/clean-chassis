@@ -18,7 +18,7 @@ MAGENTA := \033[35m
 BLUE    := \033[34m
 WHITE   := \033[97m
 
-.PHONY: help install onboarding test check audit summary pr clean pre-commit submit-kaggle sync-dataset
+.PHONY: help install onboarding test check audit summary harness-check pr clean pre-commit submit-kaggle sync-dataset
 
 help:
 	@printf "$(CYAN)┌──────────────────────────────────────────────────────────────────────────────┐\n$(RESET)"
@@ -31,8 +31,9 @@ help:
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make check$(RESET)         $(DIM)─$(RESET) Run pre-commit linters (Black, Isort, Flake8, Ruff)    $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make audit$(RESET)         $(DIM)─$(RESET) Full audit: syntax + linters + unit tests + security   $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make summary$(RESET)       $(DIM)─$(RESET) Generate local audit summary report (summary.md)       $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make harness-check$(RESET) $(DIM)─$(RESET) Verify .agents/ rules, skills & canonical docs/ layout  $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make pr$(RESET)            $(DIM)─$(RESET) Create or update PR with quality checklist             $(CYAN)│\n$(RESET)"
-	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make submit-kaggle$(RESET) $(DIM)─$(RESET) Submit artifacts/submission.zip to Kaggle competition   $(CYAN)│\n$(RESET)"
+	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make submit-kaggle$(RESET) $(DIM)─$(RESET) Submit submission.{zip,parquet,csv} to Kaggle competition $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make sync-dataset$(RESET)  $(DIM)─$(RESET) Synchronize codebase to private Kaggle dataset         $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)│$(RESET)  $(BOLD)$(GREEN)make clean$(RESET)         $(DIM)─$(RESET) Clean temporary cache files, .pytest_cache and dist    $(CYAN)│\n$(RESET)"
 	@printf "$(CYAN)├──────────────────────────────────────────────────────────────────────────────┤\n$(RESET)"
@@ -57,7 +58,7 @@ check:
 audit:
 	@printf "$(BOLD)$(BLUE)⚡ [AUDIT] Running full project audit...$(RESET)\n"
 	@$(PYTHON) -m py_compile $$(find src tests scripts -name "*.py")
-	@flake8 . --max-line-length=100
+	@flake8 . --max-line-length=100 --exclude=.git,artifacts,.venv,venv,__pycache__,build,dist
 	@ruff check .
 	@$(PYTEST)
 	@$(PYTHON) scripts/generate_summary.py
@@ -65,6 +66,9 @@ audit:
 
 summary:
 	@$(PYTHON) scripts/generate_summary.py
+
+harness-check:
+	@$(PYTHON) scripts/check_agent_harness.py $(ARGS)
 
 pr:
 	@printf "$(BOLD)$(BLUE)🚀 [PR] Creating or updating GitHub Pull Request...$(RESET)\n"

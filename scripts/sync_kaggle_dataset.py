@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Automated Kaggle Dataset Synchronization Utility.
 
-Packages and synchronizes codebase components (competitions, src, scripts) into a
-versioned Kaggle Dataset to enable offline GPU notebook execution on Kaggle.
+Packages and synchronizes codebase components (`competitions`, `src`, `scripts`,
+`notebooks`) into a versioned Kaggle Dataset to enable offline GPU notebook
+execution on Kaggle.
 
 Usage:
     python3 scripts/sync_kaggle_dataset.py --dry-run
-    python3 scripts/sync_kaggle_dataset.py --dataset-slug rogeriols/gemma-agent-code
-    python3 scripts/sync_kaggle_dataset.py --message "Sync Gemma 4 agent runner update"
+    python3 scripts/sync_kaggle_dataset.py --dataset-slug user/my-competition-code
+    python3 scripts/sync_kaggle_dataset.py --message "Sync pipeline update"
 """
 
 from __future__ import annotations
@@ -24,77 +25,24 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-# Load local .env and proxy SSL bundle if present
-env_file = REPO_ROOT / ".env"
-if env_file.is_file():
-    for line in env_file.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, v = line.split("=", 1)
-            os.environ.setdefault(k.strip(), v.strip())
+from scripts.kaggle_utils import (  # noqa: E402
+    Colors,
+    build_kaggle_env,
+    find_kaggle_credentials,
+    load_local_env,
+)
 
-if Path("/etc/ssl/certs/ca-certificates.crt").exists():
-    os.environ.setdefault("REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt")
+load_local_env(REPO_ROOT)
 
-DEFAULT_DATASET_SLUG = os.environ.get("KAGGLE_DATASET_SLUG", "kaggle-agent-code")
-DEFAULT_DATASET_TITLE = os.environ.get("KAGGLE_DATASET_TITLE", "Kaggle Agent Codebase")
-
-
-class Colors:
-    """ANSI color codes for formatted terminal output."""
-
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    GREEN = "\033[32m"
-    RED = "\033[31m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    CYAN = "\033[36m"
-    MAGENTA = "\033[35m"
-
-
-def find_kaggle_credentials() -> Optional[Tuple[str, str]]:
-    """Discovers Kaggle credentials from environment variables or ~/.kaggle/.
-
-    Returns:
-        Tuple of (username, key) or None if unconfigured.
-    """
-    # 1. Environment variables (highest priority)
-    api_token = os.environ.get("KAGGLE_API_TOKEN", "").strip()
-    if api_token:
-        username = os.environ.get("KAGGLE_USERNAME", "").strip() or "rogeriolopesdasilva"
-        return username, api_token
-
-    user_env = os.environ.get("KAGGLE_USERNAME", "").strip()
-    key_env = os.environ.get("KAGGLE_KEY", "").strip()
-    if user_env and key_env:
-        return user_env, key_env
-
-    # 2. Configuration files in ~/.kaggle (fallback)
-    token_file = Path.home() / ".kaggle" / "access_token"
-    if token_file.is_file():
-        try:
-            tok = token_file.read_text(encoding="utf-8").strip()
-            if tok:
-                username = os.environ.get("KAGGLE_USERNAME", "").strip() or "rogeriolopesdasilva"
-                return username, tok
-        except Exception:
-            pass
-
-    kaggle_json_path = Path.home() / ".kaggle" / "kaggle.json"
-    if kaggle_json_path.is_file():
-        try:
-            data = json.loads(kaggle_json_path.read_text(encoding="utf-8"))
-            if isinstance(data, dict):
-                u = str(data.get("username", "")).strip()
-                k = str(data.get("key", "")).strip()
-                if u and k:
-                    return u, k
-        except Exception:
-            pass
-
-    return None
+DEFAULT_DATASET_SLUG = (
+    os.environ.get("KAGGLE_DATASET_SLUG", "").strip() or "kaggle-competition-code"
+)
+DEFAULT_DATASET_TITLE = (
+    os.environ.get("KAGGLE_DATASET_TITLE", "").strip() or "Kaggle Competition Codebase"
+)
 
 
 def generate_dataset_metadata(
@@ -103,12 +51,12 @@ def generate_dataset_metadata(
     target_dir: Path,
     licenses: Optional[List[Dict[str, str]]] = None,
 ) -> Path:
-    """Generates dataset-metadata.json conforming to Kaggle API schema.
+    """Generates `dataset-metadata.json` conforming to the Kaggle API schema.
 
     Args:
-        dataset_slug: Kaggle dataset identifier (e.g., username/slug or slug).
+        dataset_slug: Kaggle dataset identifier (`username/slug` or `slug`).
         title: Human-readable dataset title.
-        target_dir: Directory where dataset-metadata.json will be written.
+        target_dir: Directory where `dataset-metadata.json` will be written.
         licenses: Optional custom license list. Defaults to Apache 2.0.
 
     Returns:
@@ -128,7 +76,7 @@ def generate_dataset_metadata(
 
 
 class KaggleDatasetSync:
-    """Orchestrates codebase selective packaging and deployment to Kaggle Datasets."""
+    """Orchestrates selective codebase packaging and deployment to Kaggle Datasets."""
 
     EXCLUDED_PATTERNS = {
         ".git",
@@ -136,21 +84,32 @@ class KaggleDatasetSync:
         ".githooks",
         ".pytest_cache",
         ".ruff_cache",
+        ".mypy_cache",
+        ".venv",
+        "venv",
         "__pycache__",
         "*.pyc",
         "*.pyo",
+        "*.egg-info",
         "artifacts",
         ".coverage",
         "htmlcov",
         ".DS_Store",
         "Thumbs.db",
         "*.tmp",
+        ".env*",
+        "*token*",
+        "*.key",
+        "*.pem",
+        "kaggle.json",
+        "output",
     }
 
     INCLUDED_TREES = [
         "competitions",
         "src",
         "scripts",
+        "notebooks",
     ]
 
     INCLUDED_FILES = [
@@ -165,21 +124,25 @@ class KaggleDatasetSync:
         dataset_slug: Optional[str] = None,
         title: Optional[str] = None,
         staging_dir: Optional[Path] = None,
+        included_trees: Optional[List[str]] = None,
         dry_run: bool = False,
     ) -> None:
         self.repo_root = Path(repo_root).resolve() if repo_root else REPO_ROOT
         self.dry_run = dry_run
+        self.included_trees = (
+            list(included_trees) if included_trees is not None else list(self.INCLUDED_TREES)
+        )
 
         creds = find_kaggle_credentials()
         username = creds[0] if creds else "kaggle_user"
 
-        raw_slug = dataset_slug or DEFAULT_DATASET_SLUG
+        raw_slug = (dataset_slug or DEFAULT_DATASET_SLUG).strip()
         if "/" not in raw_slug:
             self.dataset_slug = f"{username}/{raw_slug}"
         else:
             self.dataset_slug = raw_slug
 
-        self.title = title or DEFAULT_DATASET_TITLE
+        self.title = (title or DEFAULT_DATASET_TITLE).strip()
         self.staging_dir = (
             Path(staging_dir).resolve()
             if staging_dir
@@ -188,8 +151,7 @@ class KaggleDatasetSync:
 
     def is_path_excluded(self, rel_path: Path) -> bool:
         """Determines whether a relative path matches any exclusion rule."""
-        parts = rel_path.parts
-        for part in parts:
+        for part in rel_path.parts:
             for pattern in self.EXCLUDED_PATTERNS:
                 if fnmatch.fnmatch(part, pattern):
                     return True
@@ -199,42 +161,43 @@ class KaggleDatasetSync:
         """Collects files eligible for synchronization to the Kaggle Dataset.
 
         Returns:
-            List of tuples mapping (absolute_source_path, relative_staging_path).
+            List of tuples mapping `(absolute_source_path, relative_staging_path)`.
         """
         collected: List[Tuple[Path, Path]] = []
 
-        # 1. Collect individual files
         for filename in self.INCLUDED_FILES:
             file_path = self.repo_root / filename
             if file_path.is_file() and not self.is_path_excluded(Path(filename)):
                 collected.append((file_path, Path(filename)))
 
-        # 2. Collect directory trees
-        for tree_rel in self.INCLUDED_TREES:
+        for tree_rel in self.included_trees:
             tree_path = self.repo_root / tree_rel
             if not tree_path.is_dir():
                 continue
 
-            for root, _, files in os.walk(tree_path):
+            for root, dirnames, files in os.walk(tree_path):
                 root_path = Path(root)
                 rel_dir = root_path.relative_to(self.repo_root)
 
                 if self.is_path_excluded(rel_dir):
+                    dirnames[:] = []
                     continue
 
-                for f in files:
-                    file_path = root_path / f
+                dirnames[:] = [d for d in dirnames if not self.is_path_excluded(rel_dir / d)]
+
+                for fname in files:
+                    file_path = root_path / fname
                     rel_file = file_path.relative_to(self.repo_root)
                     if not self.is_path_excluded(rel_file):
                         collected.append((file_path, rel_file))
 
-        return sorted(collected, key=lambda x: str(x[1]))
+        return sorted(collected, key=lambda item: str(item[1]))
 
     def prepare_staging_area(self) -> Tuple[Path, int, int]:
-        """Prepares staging directory with filtered files and metadata.
+        """Prepares staging directory with filtered files and dataset metadata.
 
         Returns:
-            Tuple of (staging_dir_path, total_file_count, total_bytes).
+            Tuple of `(staging_dir_path, total_file_count, total_bytes)`.
         """
         if self.staging_dir.exists():
             shutil.rmtree(self.staging_dir)
@@ -258,15 +221,15 @@ class KaggleDatasetSync:
 
         metadata_size = (self.staging_dir / "dataset-metadata.json").stat().st_size
         total_bytes += metadata_size
-        total_count = len(files) + 1  # Including metadata file
+        total_count = len(files) + 1
 
         return self.staging_dir, total_count, total_bytes
 
     def sync(self, message: Optional[str] = None) -> int:
-        """Executes the dataset synchronization or dry-run simulation.
+        """Executes dataset synchronization or dry-run simulation.
 
         Args:
-            message: Version update description for Kaggle Dataset.
+            message: Version update description for the Kaggle Dataset.
 
         Returns:
             Exit code (0 on success, non-zero on failure).
@@ -300,7 +263,7 @@ class KaggleDatasetSync:
 
         if not creds:
             print(f"{Colors.RED}❌ Error: Kaggle API credentials not found.{Colors.RESET}")
-            print("Configure credentials via ~/.kaggle/kaggle.json or env variables:")
+            print("Configure credentials via .env, ~/.kaggle/kaggle.json, or env variables:")
             print('  export KAGGLE_USERNAME="your_username"')
             print('  export KAGGLE_KEY="your_api_key"')
             return 1
@@ -311,9 +274,9 @@ class KaggleDatasetSync:
             print("Install via: pip install kaggle")
             return 1
 
-        # Check if dataset already exists on Kaggle
+        env = build_kaggle_env(creds)
         status_cmd = [kaggle_bin, "datasets", "status", self.dataset_slug]
-        check_proc = subprocess.run(status_cmd, capture_output=True, text=True)
+        check_proc = subprocess.run(status_cmd, env=env, capture_output=True, text=True)
 
         if check_proc.returncode == 0:
             print(
@@ -347,7 +310,7 @@ class KaggleDatasetSync:
             ]
 
         print(f"Executing: {' '.join(push_cmd)}")
-        result = subprocess.run(push_cmd, capture_output=True, text=True)
+        result = subprocess.run(push_cmd, env=env, capture_output=True, text=True)
 
         if result.returncode == 0:
             print(f"{Colors.GREEN}✔ Successfully synchronized dataset to Kaggle!{Colors.RESET}")
@@ -372,7 +335,7 @@ def main() -> None:
         "--dataset-slug",
         type=str,
         default=None,
-        help="Kaggle dataset slug (default: <username>/gemma-agent-code)",
+        help="Kaggle dataset slug (default: <username>/kaggle-competition-code)",
     )
     parser.add_argument(
         "--title",
@@ -388,6 +351,12 @@ def main() -> None:
         help="Version update description for Kaggle Dataset",
     )
     parser.add_argument(
+        "--trees",
+        nargs="+",
+        default=None,
+        help="Optional directory trees to include (default: competitions src scripts notebooks)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Simulate staging and packaging without executing Kaggle API calls",
@@ -398,6 +367,7 @@ def main() -> None:
     sync_service = KaggleDatasetSync(
         dataset_slug=args.dataset_slug,
         title=args.title,
+        included_trees=args.trees,
         dry_run=args.dry_run,
     )
     sys.exit(sync_service.sync(message=args.message))

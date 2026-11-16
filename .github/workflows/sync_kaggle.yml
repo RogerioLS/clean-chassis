@@ -9,6 +9,7 @@ on:
       - "competitions/**"
       - "src/**"
       - "scripts/**"
+      - "notebooks/**"
       - "pyproject.toml"
   workflow_dispatch:
     inputs:
