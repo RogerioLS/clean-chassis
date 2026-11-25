@@ -145,7 +145,7 @@ class TestCleanChassisTemplateScaffold:
         assert "FAT FINGER PROTECTION" in res.stderr
 
     def test_agent_protocol_rules_and_skills_exist(self) -> None:
-        """Verifies .agents/AGENTS.md, rules (00-08), skills, and harness script pass."""
+        """Verifies .agents/AGENTS.md, rules (00-09), skills, and harness script pass."""
         from scripts.check_agent_harness import verify_agent_harness
 
         passed, errors, _ = verify_agent_harness(BASE_DIR)

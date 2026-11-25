@@ -69,7 +69,7 @@ When resolving ambiguity or conflicting context, follow this strict precedence:
 ```text
 clean-chassis/
 ├── .agents/                          # Operating protocols, rules, and specialized skills
-│   ├── rules/                        # Modular engineering & governance rules (00..08)
+│   ├── rules/                        # Modular engineering & governance rules (00..09)
 │   └── skills/                       # Step-by-step operational playbooks
 ├── .github/                          # CI/CD workflows, issue specs, and kanban scripts
 │   ├── issues/                       # Task markdown specs (task-XX-slug.md)
@@ -103,6 +103,7 @@ clean-chassis/
 7. `06_documentation_and_summary.md` — Exact doc-routing matrix (which doc to update and when).
 8. `07_terminal_and_minimalism.md` — 42-style silent progress, concise actionable feedback.
 9. `08_pragmatic_minimalism_and_experiments.md` — *Ponytail* minimalism & reproducible experiment ledger.
+10. `09_quota_and_model_routing.md` — Tiered model routing (Hydrogen/Argon/Neon), context hygiene, /compact triggers, and zero-GPU local execution.
 
 ### Skills (`.agents/skills/` — Load When Relevant):
 - `competition-orchestrator` — End-to-end Kaggle iteration coordinator.

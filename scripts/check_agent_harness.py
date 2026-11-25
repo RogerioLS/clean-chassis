@@ -35,6 +35,7 @@ EXPECTED_RULES = (
     "06_documentation_and_summary.md",
     "07_terminal_and_minimalism.md",
     "08_pragmatic_minimalism_and_experiments.md",
+    "09_quota_and_model_routing.md",
 )
 
 EXPECTED_SKILLS = (
